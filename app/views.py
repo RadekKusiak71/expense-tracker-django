@@ -30,7 +30,7 @@ class HomePageTempalteView(LoginRequiredMixin, ListView):
 
         context['expense_year_filtered'] = ExpenseByYearFilter(
             self.request.GET, queryset=self.get_queryset())
-        print(context)
+
         return context
 
     @staticmethod

@@ -28,7 +28,7 @@
 <script data-categories="{{categories}}">
     const data = document.currentScript.dataset;
     const chart_data = JSON.parse(data.categories)
-    console.log(chart_data)
+
     // Chart config
     let ctx = document.getElementById("chart").getContext("2d");
     let chart = new Chart(ctx, {
