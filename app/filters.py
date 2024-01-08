@@ -24,3 +24,27 @@ class ExpenseFilter(django_filters.FilterSet):
                 },
             },
         }
+
+
+class ExpenseByYearFilter(django_filters.FilterSet):
+    import datetime
+    YEAR_CHOICES = [(r, r) for r in range(2015, datetime.date.today().year+1)]
+    year = django_filters.ChoiceFilter(
+        field_name='expense_date__year', choices=YEAR_CHOICES, label='Choose Year')
+
+    class Meta:
+        model = Expense
+        exclude = ('__all__',)
+
+        fields = {
+            "expense_date": [],
+        }
+
+        filter_overrides = {
+            models.DateField: {
+                'filter_class': django_filters.DateFilter,
+                'extra': lambda f: {
+                    'widget': forms.DateInput(attrs={'type': 'date'}),
+                },
+            },
+        }

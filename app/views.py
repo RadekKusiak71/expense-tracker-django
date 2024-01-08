@@ -8,9 +8,8 @@ from .forms import RegisterForm, CreateExpenseForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Expense, Category
-from .filters import ExpenseFilter
+from .filters import ExpenseFilter, ExpenseByYearFilter
 from django.views.generic.edit import UpdateView
-from django.core import serializers
 import json
 
 
@@ -19,19 +18,25 @@ class HomePageTempalteView(LoginRequiredMixin, ListView):
     model = Expense
 
     def get_queryset(self) -> QuerySet[Any]:
-        return Expense.objects.filter(user=self.request.user)
+        qs = self.model.objects.filter(user=self.request.user)
+        expense_filtered = ExpenseByYearFilter(self.request.GET, queryset=qs)
+        return expense_filtered.qs
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
+
         context['categories'] = self.get_categories_list(
-            self.get_chart_data(self.request.user))
+            self.get_chart_data(self.get_queryset()))
+
+        context['expense_year_filtered'] = ExpenseByYearFilter(
+            self.request.GET, queryset=self.get_queryset())
+        print(context)
         return context
 
     @staticmethod
-    def get_chart_data(user):
+    def get_chart_data(queryset):
         hset = {}
-        expenses = Expense.objects.filter(user=user)
-        for expens in expenses:
+        for expens in queryset:
             if expens.category.name in hset:
                 hset[expens.category.name] += expens.price
             else:
