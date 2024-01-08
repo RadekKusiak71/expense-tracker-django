@@ -7,13 +7,44 @@ from django.contrib.auth.views import LoginView
 from .forms import RegisterForm, CreateExpenseForm
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Expense
+from .models import Expense, Category
 from .filters import ExpenseFilter
 from django.views.generic.edit import UpdateView
+from django.core import serializers
+import json
 
 
-class HomePageTempalteView(LoginRequiredMixin, TemplateView):
-    template_name = 'base.html'
+class HomePageTempalteView(LoginRequiredMixin, ListView):
+    template_name = 'home.html'
+    model = Expense
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return Expense.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['categories'] = self.get_categories_list(
+            self.get_chart_data(self.request.user))
+        return context
+
+    @staticmethod
+    def get_chart_data(user):
+        hset = {}
+        expenses = Expense.objects.filter(user=user)
+        for expens in expenses:
+            if expens.category.name in hset:
+                hset[expens.category.name] += expens.price
+            else:
+                hset[expens.category.name] = expens.price
+        return hset
+
+    @staticmethod
+    def get_categories_list(data):
+        res_data = []
+        for i, j in data.items():
+            res_data.append({'category': i, 'price': str(j)})
+        categories_json = json.dumps(res_data)
+        return categories_json
 
 
 class ExpenseUpdateView(UpdateView):
