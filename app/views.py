@@ -9,10 +9,18 @@ from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Expense
 from .filters import ExpenseFilter
+from django.views.generic.edit import UpdateView
 
 
 class HomePageTempalteView(LoginRequiredMixin, TemplateView):
     template_name = 'base.html'
+
+
+class ExpenseUpdateView(UpdateView):
+    model = Expense
+    fields = ['title', 'expense_date', 'price', 'category']
+    template_name = 'expense_edit.html'
+    success_url = reverse_lazy("expense-list")
 
 
 class ExpenseDeleteView(DeleteView):
